@@ -1,10 +1,11 @@
 "use strict";
 
+console.log
 /* jshint undef: true, unused: true */
 /* global _ */ 
 
 var instruct_instruct_instruct = function (funcs) {
-  this.funcs = funcs;
+  this.funcs = _.merge(instruct_instruct_instruct.base, funcs);
   this.stack = null;
   return this;
 };
@@ -18,17 +19,38 @@ var instruct_instruct_instruct = function (funcs) {
     return _.isNumber(val) && !_.isNaN(val);
   }
 
+  function concat() {
+    var args = _.toArray(arguments);
+    var base = _.first(args);
+    var arrs = _.rest(args);
+    _.each(arrs, function (v, i) {
+      _.each(v, function (val) {
+        base.push(val);
+      });
+    });
+    return base;
+  }
+
   function inspect(o) {
     return '(' + typeof(o) + ') "' + o + '"' ;
   }
 
+  instruct_instruct_instruct.base = {
+    'add to stack': function (iii) {
+      concat(iii.stack, iii.args);
+    }
+  };
+
   I.prototype.run = function (raw_code) {
-    var left   = [];
-    var code   = _.clone(raw_code);
-    var o      = null;
-    var last_o = null;
+    var left      = [];
+    var code      = _.clone(raw_code);
+    var o         = null;
+    var last_o    = null;
+    var func_name = null;
+    var result    = null;
 
     var env = {
+      stack: left,
       pop_num: function () {
         if (_.isEmpty(left))
           throw new Error("Left Stack underflow while popping for num.");
@@ -44,7 +66,7 @@ var instruct_instruct_instruct = function (funcs) {
         if (!is_numeric(num))
           throw new Error("Argument Stack shifted value is not a number: " + inspect(num));
         return num;
-      },
+      }
     };
 
     while (!_.isEmpty(code)) {
@@ -55,10 +77,13 @@ var instruct_instruct_instruct = function (funcs) {
         if (!_.isString(last_o)) {
           throw new Error('Invalid data type for function name: ' + inspect(last_o));
         }
-        env.left   = left;
         env.args   = o;
-        this.stack = left;
-        left.unshift( this.funcs[left.pop()](env) );
+        func_name  = left.pop();
+        if (!this.funcs[func_name])
+          throw new Error("Func not found: " + func_name);
+        result = this.funcs[func_name](env);
+        if (result !== undefined)
+          left.unshift( result );
       } else {
         throw new Error("Invalid data type: " + inspect(o));
       }
