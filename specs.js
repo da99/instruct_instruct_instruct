@@ -22,4 +22,339 @@ describe("instruct_instruct_instruct", function () {
     expect(function () { iii.run([5, 5, {}]); }).toThrow(new Error("Invalid data type: (object) \"[object Object]\""));
   }); // === it
 
-}); // === describe
+  it("it evals the args as code", function() {
+    var result = iii.run([
+      "add to stack", ["array", [1,2,3]]
+    ]);
+
+    expect(result.stack).toEqual([[1,2,3]]);
+  });
+
+  it("throws error if not enough stack values", function () {
+    expect(function () {
+      iii.run(['less or equal', [5]]);
+    }).toThrow(new Error('Left Stack underflow when popping number.'));
+  });
+
+  it("throws error if not enough arg values", function () {
+    expect(function () {
+      iii.run([5, 'less or equal', []]);
+    }).toThrow(new Error('Argument Stack underflow when shifting number'));
+  });
+
+});
+// === describe instruct_instruct_instruct ==========================
+
+
+// ==================================================================
+describe("less or equal", function () {
+  it('it places true if: 5 <= 6', function () {
+    var o = iii.run([
+      5, "less or equal", [ 6 ]
+    ]);
+    expect( o.stack('last') ).toEqual([true]);
+  });
+
+  it('it places true if: 6 <= 6', function () {
+    var o = iii.run([
+      6, "less or equal", [ 6 ]
+    ]);
+    expect(o.stack).toEqual([true]);
+  });
+
+  it('it places false if: 7 <= 6', function () {
+    var o = iii.run([
+      7, "less or equal", [ 6 ]
+    ]);
+    expect(o.stack).toEqual([false]);
+  });
+
+  it('throws error if first num is not a number', function () {
+    expect(function () {
+      iii.run([
+        '5', 'less or equal', [5] 
+      ]);
+    }).toThrow(new Error('Value in stack is not a Number: String: 5'));
+  });
+
+  it('throws error if second num is not a number', function () {
+    expect(function () {
+      iii.run([
+        5, 'less or equal', ["6"] 
+      ]);
+    }).toThrow(new Error('Value in args is not a Number: String: 6'));
+  });
+
+});
+// === describe less or equal =======================================
+
+// ==================================================================
+describe("bigger or equal", function () {
+  it('it places true if: 6 >= 4', function () {
+    var o = iii.run([
+      6, "bigger or equal", [ 4 ]
+    ]);
+    expect(o.stack).toEqual([true]);
+  });
+
+  it('it places true if: 6 >= 6', function () {
+    var o = iii.run([
+      6, "bigger or equal", [ 6 ]
+    ]);
+    expect(o.stack).toEqual([true]);
+  });
+
+  it('it places false if: 6 >= 7', function () {
+    var o = iii.run([
+      6, "bigger or equal", [ 7 ]
+    ]);
+    expect(o.stack).toEqual([false]);
+  });
+
+  it('throws error if first num is not a number', function () {
+    expect(function () {
+      iii.run([ '3', 'bigger or equal', [5] ]);
+    }).toThrow(new Error('Value in stack is not a Number: String: 3'));
+  });
+
+  it('throws error if second num is not a number', function () {
+    expect(function () {
+      iii.run([ 5, 'bigger or equal', ["9"] ]);
+    }).toThrow(new Error('Value in args is not a Number: String: 9'));
+  });
+});
+// === describe bigger or equal =====================================
+
+
+// ==================================================================
+describe('bigger', function () {
+
+  it('it places true on stack if: 6 > 1', function () {
+    var o = iii.run([ 6, 'bigger', [1] ]);
+    expect(o.stack).toEqual([true]);
+  });
+
+
+  it('it places false on stack if: 6 > 6', function () {
+    var o = iii.run([ 6, 'bigger', [6] ]);
+    expect(o.stack).toEqual([false]);
+  });
+
+});
+// === describe bigger ==============================================
+
+// ==================================================================
+describe('less', function () {
+
+  it('it places true on stack if: 1 < 6', function () {
+    var o = iii.run([
+      1, 'less', [6]
+    ]);
+    expect(o.stack).toEqual([true]);
+  });
+
+
+  it('it places false on stack if: 6 < 6', function () {
+    var o = iii.run([
+      6, 'less', [6]
+    ]);
+    expect(o.stack).toEqual([false]);
+  });
+
+  it('it places false on stack if: 6 < 1', function () {
+    var o = iii.run([
+      6, 'less', [1]
+    ]);
+    expect(o.stack).toEqual([false]);
+  });
+
+});
+// === describe less ================================================
+
+
+// ==================================================================
+describe('equal', function () {
+
+  it('it places true on stack if: 1 === 1', function () {
+    var o = iii.run([
+      1, 'equal', [1]
+    ]);
+    expect(o.stack).toEqual([true]);
+  });
+
+  it('it places true on stack if: \'a\' === \'a\'', function () {
+    var o = iii.run([
+      "a", 'equal', ["a"]
+    ]);
+    expect(o.stack).toEqual([true]);
+  });
+
+  it('it places false on stack if: \'5\' === 5', function () {
+    var o = iii.run([
+      "5", 'equal', [5]
+    ]);
+    expect(o.stack).toEqual([false]);
+  });
+
+
+  it('it places false on stack if: 6 === \'6\'', function () {
+    var o = iii.run([
+      6, 'equal', ["6"]
+    ]);
+    expect(o.stack).toEqual([false]);
+  });
+
+});
+// === describe equal ===============================================
+
+
+// ==================================================================
+describe('and', function () {
+
+  it('throws error if last value on stack is not a bool', function () {
+    expect(function () {
+      iii.run([ 1, 'and', [true] ]);
+    }).toThrow(new Error('Value in stack is not a Boolean: Number: 1'));
+  });
+
+  it('throws if last value of args is not a bool', function () {
+    expect(function () {
+      iii.run([ true, 'and', [2] ]);
+    }).toThrow(new Error('Value in args is not a Boolean: Number: 2'));
+  });
+
+  it('it places true on stack if both conditions are true', function () {
+    var o = iii.run([
+      true, 'and', [6, 'equal', [6]]
+    ]);
+    expect(o.stack).toEqual([true]);
+  });
+
+  it('it places false on stack if first condition is false', function () {
+    var o = iii.run([
+      false, 'and', [6, 'equal', [6]]
+    ]);
+    expect(o.stack).toEqual([false, false]);
+  });
+
+  it('it places false on stack if second condition is false', function () {
+    var o = iii.run([
+      true, 'and', [6, 'equal', [7]]
+    ]);
+    expect(o.stack).toEqual([true, false]);
+  });
+
+  it('does not evaluate args if right-hand value is false', function () {
+    var o = iii.run([
+      false, 'and', ['unknown method', []]
+    ]);
+    expect(o.stack).toEqual([false, false]);
+  });
+
+});
+// === describe and =================================================
+
+// ==================================================================
+describe('or', function () {
+
+  it('it throws an error if first condition is not a bool', function () {
+    expect(function () {
+      iii.run(["something", 'or', [false]]);
+    }).toThrow(new Error('Value in stack is not a Boolean: String: something'));
+  });
+
+  it('it throws an error if second condition is not a bool', function () {
+    expect(function () {
+      iii.run([false, 'or', [false, "something"]]);
+    }).toThrow(new Error('Value in args is not a Boolean: String: something'));
+  });
+
+  it('it places true on stack if both conditions are true', function () {
+    var o = iii.run([
+      true, 'or', [6, 'equal', [6]]
+    ]);
+    expect(o.stack).toEqual([true, true]);
+  });
+
+  it('it places true on stack if: true or false', function () {
+    var o = iii.run([
+      true, 'or', [9, 'equal', [6]]
+    ]);
+    expect(o.stack).toEqual([true, true]);
+  });
+
+  it('it places true on stack if: false or true', function () {
+    var o = iii.run([
+      false, 'or', [9, 'equal', [9]]
+    ]);
+    expect(o.stack).toEqual([false, true]);
+  });
+
+  it('does not evaluate args if first condition is true', function () {
+    var o = iii.run([
+      true, 'or', ['no known method', []]
+    ]);
+    expect(o.stack).toEqual([true, true]);
+  });
+
+});
+// === describe or ==================================================
+
+
+// ==================================================================
+describe('if true', function () {
+
+  it('throws an error if righ hand value is not a bool', function () {
+    expect(function () {
+      iii.run([
+        6, "if true", [5]
+      ]);
+    }).toThrow(new Error('Value in stack is not a Boolean: Number: 6'));
+  });
+
+  it('does not place a value on stack', function () {
+    var o = iii.run([
+      true, "if true", [ 100 ]
+    ]);
+
+    expect(o.stack).toEqual([true]);
+  });
+
+  it('does not run tokens if stack value is false', function () {
+    var o = iii.run([
+      false, "if true", [ "something unknown", [] ]
+    ]);
+
+    expect(o.stack).toEqual([false]);
+  });
+
+});
+// === describe if true =============================================
+
+
+// ==================================================================
+describe('if false', function () {
+  it('throws an error if righ hand value is not a bool', function () {
+    expect(function () {
+      iii.run([ 7, "if false", [5] ]);
+    }).toThrow(new Error('Value in stack is not a Boolean: Number: 7'));
+  });
+
+  it('does not place a value on stack', function () {
+    var o = iii.run([
+      false, "if false", [ 100 ]
+    ]);
+
+    expect(o.stack).toEqual([false]);
+  });
+
+  it('does not run tokens if stack value is true', function () {
+    var o = iii.run([
+      true, "if false", [ "something unknown", [] ]
+    ]);
+
+    expect(o.stack).toEqual([true]);
+  });
+});
+// === describe if false ============================================
+
