@@ -3,8 +3,7 @@
 /* jshint undef: true, unused: true */
 /* global _ */ 
 
-var instruct_instruct_instruct = function (code, funcs) {
-  this.code  = code;
+var instruct_instruct_instruct = function (funcs) {
   this.funcs = funcs;
   this.stack = null;
   return this;
@@ -23,9 +22,9 @@ var instruct_instruct_instruct = function (code, funcs) {
     return '(' + typeof(o) + ') "' + o + '"' ;
   }
 
-  I.prototype.run = function () {
+  I.prototype.run = function (raw_code) {
     var left   = [];
-    var code   = _.clone(this.code);
+    var code   = _.clone(raw_code);
     var o      = null;
     var last_o = null;
 
@@ -67,7 +66,10 @@ var instruct_instruct_instruct = function (code, funcs) {
       last_o = o;
     } // === while i < size
 
-    return this;
+    return {
+      code: raw_code,
+      stack: left
+    };
   }; // function run
 
 })(); // === scope
