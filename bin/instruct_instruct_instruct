@@ -6,7 +6,6 @@ action="$1"
 shift
 set -u -e -o pipefail
 
-is_running=""
 case "$action" in
 
   "help")
@@ -21,29 +20,29 @@ case "$action" in
 
   "watch")
     echo "=== Watching: "
-    inotifywait -e modify -m -r .  | while read CHANGE
+    inotifywait -q --exclude .git/ -e close_write,close -m -r .  | while read CHANGE
     do
       dir=$(echo "$CHANGE" | cut -d' ' -f 1)
       op=$(echo "$CHANGE" | cut -d' ' -f 2)
       file=$(echo "$CHANGE" | cut -d' ' -f 3)
       path="${dir}$file"
 
-      if [[ "$file" == *.js* ]]; then
-        if [[ -z "$is_running" ]]; then
-          echo ""
-          echo "=== Runninig jshint on $path: $CHANGE $is_running"
-          is_running="true"
-          (jshint "$path" && echo "No errors.") || true
-        else
-          is_running=""
-        fi
-      fi
-
-      if [[ "$path" == *bin/* ]]; then
+      if [[ ( ! "$op" =~ "NOWRITE" ) && ( "$op" =~ "CLOSE" || "$op" =~ "WRITE" )  && ! -z "$file" ]]
+      then
         echo ""
-        echo "=== Restarting:"
-        exec $path "watch"
-      fi
+        if [[ "$file" == *.js* ]]; then
+          echo ""
+          echo "=== Runninig jshint on $path: $CHANGE"
+          (jshint "$path" && echo "No errors.") || true
+        fi
+
+        if [[ "$path" == *bin/* ]]; then
+          echo ""
+          echo "=== Restarting:"
+          exec $path "watch"
+        fi
+      fi # === if file op
+
     done
     ;;
 
