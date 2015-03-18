@@ -15,6 +15,11 @@ var instruct_instruct_instruct = function (funcs) {
 (function () {
   var I = instruct_instruct_instruct;
 
+  function log() {
+    if (window.console)
+      console.log.apply(console, arguments);
+  }; // function
+
   function is_numeric(val) {
     return _.isNumber(val) && !_.isNaN(val);
   }
@@ -38,8 +43,42 @@ var instruct_instruct_instruct = function (funcs) {
   instruct_instruct_instruct.base = {
     'add to stack': function (iii) {
       concat(iii.stack, iii.args);
+    },
+    'array': function (iii) {
+      return iii.args;
+    },
+    'less or equal': function (iii) {
+      var left = iii.pop_num();
+      var right = iii.shift_num();
+      return left <= right;
+    },
+    'bigger or equal': function (iii) {
+      var left = iii.pop_num();
+      var right = iii.shift_num();
+      return left >= right;
+    },
+    'bigger': function (iii) {
+      return iii.pop_num() > iii.shift_num();
+    },
+    'less': function (iii) {
+      return iii.pop_num() < iii.shift_num();
+    },
+    'equal': function (iii) {
+      var left  = iii.pop();
+      var right = iii.shift();
+      var l_type = typeof(left);
+      var r_type = typeof(right);
+
+      if (l_type !== r_type)
+        throw new Error("Type mis-match: " + inspect(left) + ' !== ' + inspect(right));
+      return left === right;
     }
   };
+
+  I.prototype.spawn = function () {
+    var funcs = _.clone(this.funcs);
+    return new instruct_instruct_instruct(funcs);
+  }; // function
 
   I.prototype.run = function (raw_code) {
     var left      = [];
@@ -51,6 +90,16 @@ var instruct_instruct_instruct = function (funcs) {
 
     var env = {
       stack: left,
+      pop: function () {
+        if (_.isEmpty(left))
+          throw new Error("Left Stack underflow while popping.");
+        return left.pop();
+      },
+      shift: function () {
+        if (_.isEmpty(this.args))
+          throw new Error("Argument Stack underflow while shifting for num.");
+        return this.args.pop();
+      },
       pop_num: function () {
         if (_.isEmpty(left))
           throw new Error("Left Stack underflow while popping for num.");
@@ -77,7 +126,7 @@ var instruct_instruct_instruct = function (funcs) {
         if (!_.isString(last_o)) {
           throw new Error('Invalid data type for function name: ' + inspect(last_o));
         }
-        env.args   = o;
+        env.args   = this.spawn().run(o).stack;
         func_name  = left.pop();
         if (!this.funcs[func_name])
           throw new Error("Func not found: " + func_name);

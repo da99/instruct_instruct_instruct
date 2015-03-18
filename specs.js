@@ -33,13 +33,13 @@ describe("instruct_instruct_instruct", function () {
   it("throws error if not enough stack values", function () {
     expect(function () {
       iii.run(['less or equal', [5]]);
-    }).toThrow(new Error('Left Stack underflow when popping number.'));
+    }).toThrow(new Error('Left Stack underflow while popping for num.'));
   });
 
   it("throws error if not enough arg values", function () {
     expect(function () {
       iii.run([5, 'less or equal', []]);
-    }).toThrow(new Error('Argument Stack underflow when shifting number'));
+    }).toThrow(new Error('Argument Stack underflow while shifting for num.'));
   });
 
 });
@@ -52,7 +52,7 @@ describe("less or equal", function () {
     var o = iii.run([
       5, "less or equal", [ 6 ]
     ]);
-    expect( o.stack('last') ).toEqual([true]);
+    expect( o.stack ).toEqual([true]);
   });
 
   it('it places true if: 6 <= 6', function () {
@@ -74,7 +74,7 @@ describe("less or equal", function () {
       iii.run([
         '5', 'less or equal', [5] 
       ]);
-    }).toThrow(new Error('Value in stack is not a Number: String: 5'));
+    }).toThrow(new Error('Left Stack popped value is not a number: (string) "5"'));
   });
 
   it('throws error if second num is not a number', function () {
@@ -82,7 +82,7 @@ describe("less or equal", function () {
       iii.run([
         5, 'less or equal', ["6"] 
       ]);
-    }).toThrow(new Error('Value in args is not a Number: String: 6'));
+    }).toThrow(new Error('Argument Stack shifted value is not a number: (string) "6"'));
   });
 
 });
@@ -114,13 +114,13 @@ describe("bigger or equal", function () {
   it('throws error if first num is not a number', function () {
     expect(function () {
       iii.run([ '3', 'bigger or equal', [5] ]);
-    }).toThrow(new Error('Value in stack is not a Number: String: 3'));
+    }).toThrow(new Error('Left Stack popped value is not a number: (string) "3"'));
   });
 
   it('throws error if second num is not a number', function () {
     expect(function () {
       iii.run([ 5, 'bigger or equal', ["9"] ]);
-    }).toThrow(new Error('Value in args is not a Number: String: 9'));
+    }).toThrow(new Error('Argument Stack shifted value is not a number: (string) "9"'));
   });
 });
 // === describe bigger or equal =====================================
@@ -189,20 +189,13 @@ describe('equal', function () {
     expect(o.stack).toEqual([true]);
   });
 
-  it('it places false on stack if: \'5\' === 5', function () {
-    var o = iii.run([
-      "5", 'equal', [5]
-    ]);
-    expect(o.stack).toEqual([false]);
+  it('throws Error if type mis-match: \'5\' === 5', function () {
+    expect(function () {
+      iii.run([ "5", 'equal', [5] ]);
+    }).toThrow(new Error('Type mis-match while popping: (string) "5" !== (number) "5"' ));
   });
 
 
-  it('it places false on stack if: 6 === \'6\'', function () {
-    var o = iii.run([
-      6, 'equal', ["6"]
-    ]);
-    expect(o.stack).toEqual([false]);
-  });
 
 });
 // === describe equal ===============================================
