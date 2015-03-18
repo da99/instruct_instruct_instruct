@@ -67,5 +67,7 @@ var instruct_instruct_instruct = function (code, funcs) {
       last_o = o;
     } // === while i < size
 
-  }; // function
-})();
+    return this;
+  }; // function run
+
+})(); // === scope
