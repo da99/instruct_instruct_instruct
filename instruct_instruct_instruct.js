@@ -3,7 +3,7 @@
 /* jshint undef: true, unused: true */
 /* global _ */ 
 
-var instrust_instruct_instruct = function (code, funcs) {
+var instruct_instruct_instruct = function (code, funcs) {
   this.code  = code;
   this.funcs = funcs;
   this.stack = null;
@@ -13,7 +13,7 @@ var instrust_instruct_instruct = function (code, funcs) {
 
 // === Scope
 (function () {
-  var I = instrust_instruct_instruct;
+  var I = instruct_instruct_instruct;
 
   function is_numeric(val) {
     return _.isNumber(val) && !_.isNaN(val);
@@ -24,17 +24,16 @@ var instrust_instruct_instruct = function (code, funcs) {
   }
 
   I.prototype.run = function () {
-    var i      = 0;
     var left   = [];
-    var stack  = this.stack = _.dup(this.code);
+    var code   = _.clone(this.code);
     var o      = null;
     var last_o = null;
 
     var env = {
       pop_num: function () {
-        if (_.isEmpty(stack))
+        if (_.isEmpty(left))
           throw new Error("Left Stack underflow while popping for num.");
-        var num = stack.pop();
+        var num = left.pop();
         if (!is_numeric(num))
           throw new Error("Left Stack popped value is not a number: " + inspect(num));
         return num;
@@ -42,29 +41,30 @@ var instrust_instruct_instruct = function (code, funcs) {
       shift_num: function () {
         if (_.isEmpty(this.args))
           throw new Error("Argument Stack underflow while shifting for num.");
-        var num = stack.pop();
+        var num = this.args.pop();
         if (!is_numeric(num))
           throw new Error("Argument Stack shifted value is not a number: " + inspect(num));
         return num;
       },
     };
 
-    while (!_.isEmpty(stack)) {
-      o = stack[i];
+    while (!_.isEmpty(code)) {
+      o = code.shift();
       if (_.isString(o) || is_numeric(o)) {
         left.push(o);
       } else if (_.isArray(o)) {
-        if (!_.isString(last_o))
-          throw new Error('Invalid data type for function name: ' + inspect(o));
-        env.stack = stack;
-        env.args  = o;
-        stack.unshift( this.funcs[left.pop()](env) );
+        if (!_.isString(last_o)) {
+          throw new Error('Invalid data type for function name: ' + inspect(last_o));
+        }
+        env.left   = left;
+        env.args   = o;
+        this.stack = left;
+        left.unshift( this.funcs[left.pop()](env) );
       } else {
         throw new Error("Invalid data type: " + inspect(o));
       }
 
       last_o = o;
-      i = i + 1;
     } // === while i < size
 
   }; // function
