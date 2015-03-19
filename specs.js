@@ -4,7 +4,7 @@
 
 var iii = new instruct_instruct_instruct(
   {plus: function (iii) {
-    return iii.pop_num() + iii.shift_num();
+    return iii.pop('number') + iii.shift('number');
   }}
 );
 
@@ -33,13 +33,13 @@ describe("instruct_instruct_instruct", function () {
   it("throws error if not enough stack values", function () {
     expect(function () {
       iii.run(['less or equal', [5]]);
-    }).toThrow(new Error('Left Stack underflow while popping for num.'));
+    }).toThrow(new Error('Left Stack underflow while popping for number.'));
   });
 
   it("throws error if not enough arg values", function () {
     expect(function () {
       iii.run([5, 'less or equal', []]);
-    }).toThrow(new Error('Argument Stack underflow while shifting for num.'));
+    }).toThrow(new Error('Argument Stack underflow while shifting for number.'));
   });
 
 });
@@ -192,10 +192,8 @@ describe('equal', function () {
   it('throws Error if type mis-match: \'5\' === 5', function () {
     expect(function () {
       iii.run([ "5", 'equal', [5] ]);
-    }).toThrow(new Error('Type mis-match while popping: (string) "5" !== (number) "5"' ));
+    }).toThrow(new Error('Type mis-match: (string) "5" !== (number) "5"' ));
   });
-
-
 
 });
 // === describe equal ===============================================
@@ -206,14 +204,14 @@ describe('and', function () {
 
   it('throws error if last value on stack is not a bool', function () {
     expect(function () {
-      iii.run([ 1, 'and', [true] ]);
-    }).toThrow(new Error('Value in stack is not a Boolean: Number: 1'));
+      iii.run([ 1, 'and', [1, 'equal', [1]] ]);
+    }).toThrow(new Error('Left Stack popped value is not a boolean: (number) "1"'));
   });
 
   it('throws if last value of args is not a bool', function () {
     expect(function () {
       iii.run([ true, 'and', [2] ]);
-    }).toThrow(new Error('Value in args is not a Boolean: Number: 2'));
+    }).toThrow(new Error('Argument Stack shifted value is not a boolean: (number) "2"'));
   });
 
   it('it places true on stack if both conditions are true', function () {
@@ -223,71 +221,50 @@ describe('and', function () {
     expect(o.stack).toEqual([true]);
   });
 
-  it('it places false on stack if first condition is false', function () {
-    var o = iii.run([
-      false, 'and', [6, 'equal', [6]]
-    ]);
-    expect(o.stack).toEqual([false, false]);
-  });
-
-  it('it places false on stack if second condition is false', function () {
-    var o = iii.run([
-      true, 'and', [6, 'equal', [7]]
-    ]);
-    expect(o.stack).toEqual([true, false]);
-  });
-
-  it('does not evaluate args if right-hand value is false', function () {
+  it('does not evaluate args if left stack value is false', function () {
     var o = iii.run([
       false, 'and', ['unknown method', []]
     ]);
-    expect(o.stack).toEqual([false, false]);
+    expect(o.stack).toEqual([false]);
   });
 
 });
 // === describe and =================================================
 
 // ==================================================================
-describe('or', function () {
+describe('or:', function () {
 
   it('it throws an error if first condition is not a bool', function () {
     expect(function () {
       iii.run(["something", 'or', [false]]);
-    }).toThrow(new Error('Value in stack is not a Boolean: String: something'));
+    }).toThrow(new Error('Left Stack popped value is not a boolean: (string) "something"'));
   });
 
   it('it throws an error if second condition is not a bool', function () {
     expect(function () {
-      iii.run([false, 'or', [false, "something"]]);
-    }).toThrow(new Error('Value in args is not a Boolean: String: something'));
+      iii.run([false, 'or', ["something"]]);
+    }).toThrow(new Error('Argument Stack shifted value is not a boolean: (string) "something"'));
   });
 
   it('it places true on stack if both conditions are true', function () {
     var o = iii.run([
       true, 'or', [6, 'equal', [6]]
     ]);
-    expect(o.stack).toEqual([true, true]);
-  });
-
-  it('it places true on stack if: true or false', function () {
-    var o = iii.run([
-      true, 'or', [9, 'equal', [6]]
-    ]);
-    expect(o.stack).toEqual([true, true]);
+    expect(o.stack).toEqual([true]);
   });
 
   it('it places true on stack if: false or true', function () {
     var o = iii.run([
-      false, 'or', [9, 'equal', [9]]
+      false, 'or', [6, 'equal', [6]]
     ]);
-    expect(o.stack).toEqual([false, true]);
+    expect(o.stack).toEqual([true]);
   });
 
   it('does not evaluate args if first condition is true', function () {
     var o = iii.run([
       true, 'or', ['no known method', []]
     ]);
-    expect(o.stack).toEqual([true, true]);
+    expect(o.stack).toEqual([true]);
   });
 
 });
@@ -295,7 +272,7 @@ describe('or', function () {
 
 
 // ==================================================================
-describe('if true', function () {
+describe('if true:', function () {
 
   it('throws an error if righ hand value is not a bool', function () {
     expect(function () {

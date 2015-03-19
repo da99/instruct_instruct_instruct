@@ -1,6 +1,5 @@
 "use strict";
 
-console.log
 /* jshint undef: true, unused: true */
 /* global _ */ 
 
@@ -18,7 +17,7 @@ var instruct_instruct_instruct = function (funcs) {
   function log() {
     if (window.console)
       console.log.apply(console, arguments);
-  }; // function
+  }
 
   function is_numeric(val) {
     return _.isNumber(val) && !_.isNaN(val);
@@ -28,7 +27,7 @@ var instruct_instruct_instruct = function (funcs) {
     var args = _.toArray(arguments);
     var base = _.first(args);
     var arrs = _.rest(args);
-    _.each(arrs, function (v, i) {
+    _.each(arrs, function (v) {
       _.each(v, function (val) {
         base.push(val);
       });
@@ -42,26 +41,39 @@ var instruct_instruct_instruct = function (funcs) {
 
   instruct_instruct_instruct.base = {
     'add to stack': function (iii) {
-      concat(iii.stack, iii.args);
+      concat(iii.stack, iii.shift('all'));
     },
     'array': function (iii) {
-      return iii.args;
+      return iii.shift('all');
+    },
+    "or": function (iii) {
+      var left = iii.pop('boolean');
+      if (left)
+        return true;
+      return iii.shift('boolean');
+    },
+    'and': function (iii) {
+      var left = iii.pop('boolean');
+      if (left)
+        return left === iii.shift('boolean');
+      else
+        return false;
     },
     'less or equal': function (iii) {
-      var left = iii.pop_num();
-      var right = iii.shift_num();
+      var left = iii.pop('number');
+      var right = iii.shift('number');
       return left <= right;
     },
     'bigger or equal': function (iii) {
-      var left = iii.pop_num();
-      var right = iii.shift_num();
+      var left = iii.pop('number');
+      var right = iii.shift('number');
       return left >= right;
     },
     'bigger': function (iii) {
-      return iii.pop_num() > iii.shift_num();
+      return iii.pop('number') > iii.shift('number');
     },
     'less': function (iii) {
-      return iii.pop_num() < iii.shift_num();
+      return iii.pop('number') < iii.shift('number');
     },
     'equal': function (iii) {
       var left  = iii.pop();
@@ -81,6 +93,7 @@ var instruct_instruct_instruct = function (funcs) {
   }; // function
 
   I.prototype.run = function (raw_code) {
+    var self      = this;
     var left      = [];
     var code      = _.clone(raw_code);
     var o         = null;
@@ -90,44 +103,99 @@ var instruct_instruct_instruct = function (funcs) {
 
     var env = {
       stack: left,
-      pop: function () {
-        if (_.isEmpty(left))
-          throw new Error("Left Stack underflow while popping.");
-        return left.pop();
+      run_args : function () {
+        if (!_.isUndefined(this.raw_args))
+          this.args = self.spawn().run(this.raw_args).stack;
+        this.raw_args = undefined;
+
+        return this.args;
       },
-      shift: function () {
-        if (_.isEmpty(this.args))
-          throw new Error("Argument Stack underflow while shifting for num.");
-        return this.args.pop();
+
+      pop: function (type) {
+        var val;
+        var is_empty = _.isEmpty(left);
+
+        if (is_empty) {
+          if (type)
+            throw new Error("Left Stack underflow while popping for " + type + '.');
+          else
+            throw new Error("Left Stack underflow while popping.");
+        }
+
+        val = left.pop();
+
+        switch (type) {
+          case 'number':
+            if (!is_numeric(val))
+              throw new Error("Left Stack popped value is not a number: " + inspect(val));
+            break;
+
+          case 'string':
+            if (!_.isString(val))
+              throw new Error("Left Stack popped value is not a string: " + inspect(val));
+            break;
+
+          case 'boolean':
+            if (!_.isBoolean(val))
+              throw new Error("Left Stack popped value is not a boolean: " + inspect(val));
+            break;
+
+          default:
+            if (type !== undefined)
+              throw new Error("Unknown type for .pop(): " + inspect(type));
+        } // === switch
+
+        return val;
       },
-      pop_num: function () {
-        if (_.isEmpty(left))
-          throw new Error("Left Stack underflow while popping for num.");
-        var num = left.pop();
-        if (!is_numeric(num))
-          throw new Error("Left Stack popped value is not a number: " + inspect(num));
-        return num;
-      },
-      shift_num: function () {
-        if (_.isEmpty(this.args))
-          throw new Error("Argument Stack underflow while shifting for num.");
-        var num = this.args.pop();
-        if (!is_numeric(num))
-          throw new Error("Argument Stack shifted value is not a number: " + inspect(num));
-        return num;
+
+      shift: function (type) {
+        this.run_args();
+        if (_.isEmpty(this.args)) {
+          if (type)
+            throw new Error("Argument Stack underflow while shifting for " + type + ".");
+          else
+            throw new Error("Argument Stack underflow.");
+        }
+
+        var val = this.args.shift();
+
+        switch (type) {
+          case 'number':
+            if (!is_numeric(val))
+              throw new Error("Argument Stack shifted value is not a number: " + inspect(val));
+            break;
+          case 'string':
+            if (!_.isString(val))
+              throw new Error("Argument Stack shifted value is not a string: " + inspect(val));
+            break;
+          case 'boolean':
+            if (!_.isBoolean(val))
+              throw new Error("Argument Stack shifted value is not a boolean: " + inspect(val));
+            break;
+          case 'all':
+            val = concat([val], this.args);
+            this.args = [];
+            break;
+
+          default:
+            if (type !== undefined)
+              throw new Error("Unknown type for .shift(): " + inspect(type));
+        } // === switch
+
+        return val;
       }
     };
 
     while (!_.isEmpty(code)) {
       o = code.shift();
-      if (_.isString(o) || is_numeric(o)) {
+      if (_.isString(o) || is_numeric(o) || _.isBoolean(o)) {
         left.push(o);
       } else if (_.isArray(o)) {
         if (!_.isString(last_o)) {
           throw new Error('Invalid data type for function name: ' + inspect(last_o));
         }
-        env.args   = this.spawn().run(o).stack;
-        func_name  = left.pop();
+        env.raw_args = o;
+        func_name    = left.pop();
         if (!this.funcs[func_name])
           throw new Error("Func not found: " + func_name);
         result = this.funcs[func_name](env);
