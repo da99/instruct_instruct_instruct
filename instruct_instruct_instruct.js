@@ -67,14 +67,14 @@ var instruct_instruct_instruct = function (funcs) {
       var left = iii.pop('boolean');
       if (!left)
         return left;
-      var vals = iii.shift('all');
+      iii.shift('all');
       return left;
     },
     'if false': function (iii) {
       var left = iii.pop('boolean');
       if (left)
         return left;
-      var vals = iii.shift('all');
+      iii.shift('all');
       return left;
     },
     'less or equal': function (iii) {
@@ -169,7 +169,7 @@ var instruct_instruct_instruct = function (funcs) {
 
       shift: function (type) {
         this.run_args();
-        if (type == 'all') {
+        if (type === 'all') {
           var vals = this.args;
           this.args = [];
           return vals;
