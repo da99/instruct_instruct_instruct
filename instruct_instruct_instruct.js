@@ -62,22 +62,16 @@ var instruct_instruct_instruct = function (funcs) {
     'if true': function (iii) {
       var left = iii.pop('boolean');
       if (!left)
-        return false;
+        return left;
       var vals = iii.shift('all');
-      if (_.isEmpty(vals))
-        return true;
-      else
-        return _.last(vals);
+      return left;
     },
     'if false': function (iii) {
       var left = iii.pop('boolean');
       if (left)
-        return false;
+        return left;
       var vals = iii.shift('all');
-      if (_.isEmpty(vals))
-        return true;
-      else
-        return _.last(vals);
+      return left;
     },
     'less or equal': function (iii) {
       var left = iii.pop('number');
