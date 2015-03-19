@@ -45,7 +45,11 @@ var instruct_instruct_instruct = function (funcs) {
       concat(iii.stack, iii.shift('all'));
     },
     '$': function (iii) {
-      return $(iii.pop('string'));
+      var args = iii.shift('all');
+      if (_.isEmpty(args))
+        return $(iii.pop('string'));
+      else
+        return $.apply($, args);
     },
     'array': function (iii) {
       return iii.shift('all');

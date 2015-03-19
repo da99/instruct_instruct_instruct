@@ -348,8 +348,14 @@ describe('$', function () {
 
   it('turns a String selector into a JQuery object', function () {
     $('#the_stage').html('<span class="logo"></span>');
-    var result = iii.run(['#the_stage span.logo', '$', [], 'size', []]).stack;
-    expect(result).toEqual(result);
+    var result = iii.run(['$', ['#the_stage span.logo'], 'size', []]).stack;
+    expect(result).toEqual([1]);
+  }); // === it
+
+  it('uses the Left Stack if Argument Stack is empty', function () {
+    $('#the_stage').html('<span class="left_args">yoyo</span>');
+    var result = iii.run(['#the_stage span.left_args', '$', [], 'text', []]).stack;
+    expect(result).toEqual(['yoyo']);
   }); // === it
 
 }); // === describe $
@@ -362,10 +368,3 @@ describe("delegating to JQuery", function () {
 }); // === describe delegating to JQuery
 
 
- 
- 
- 
- 
- 
- 
- 
