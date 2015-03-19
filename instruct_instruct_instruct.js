@@ -16,7 +16,7 @@ var instruct_instruct_instruct = function (funcs) {
 
   function log() {
     if (window.console)
-      console.log.apply(console, arguments);
+      console['log'].apply(console, arguments);
   }
 
   function is_numeric(val) {
