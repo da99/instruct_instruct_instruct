@@ -279,15 +279,15 @@ describe('if true:', function () {
       iii.run([
         6, "if true", [5]
       ]);
-    }).toThrow(new Error('Value in stack is not a Boolean: Number: 6'));
+    }).toThrow(new Error('Left Stack popped value is not a boolean: (number) "6"'));
   });
 
-  it('does not place a value on stack', function () {
+  it('places result on stack', function () {
     var o = iii.run([
-      true, "if true", [ 100 ]
+      true, "if true", [ 100, 5]
     ]);
 
-    expect(o.stack).toEqual([true]);
+    expect(o.stack).toEqual([5]);
   });
 
   it('does not run tokens if stack value is false', function () {
@@ -304,18 +304,18 @@ describe('if true:', function () {
 
 // ==================================================================
 describe('if false', function () {
-  it('throws an error if righ hand value is not a bool', function () {
+  it('throws an error if left stack value is not a bool', function () {
     expect(function () {
       iii.run([ 7, "if false", [5] ]);
-    }).toThrow(new Error('Value in stack is not a Boolean: Number: 7'));
+    }).toThrow(new Error('Left Stack popped value is not a boolean: (number) "7"'));
   });
 
-  it('does not place a value on stack', function () {
+  it('places result value on stack', function () {
     var o = iii.run([
-      false, "if false", [ 100 ]
+      false, "if false", [ 100, 5 ]
     ]);
 
-    expect(o.stack).toEqual([false]);
+    expect(o.stack).toEqual([5]);
   });
 
   it('does not run tokens if stack value is true', function () {
@@ -323,7 +323,7 @@ describe('if false', function () {
       true, "if false", [ "something unknown", [] ]
     ]);
 
-    expect(o.stack).toEqual([true]);
+    expect(o.stack).toEqual([false]);
   });
 });
 // === describe if false ============================================

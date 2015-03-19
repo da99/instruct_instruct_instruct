@@ -59,6 +59,26 @@ var instruct_instruct_instruct = function (funcs) {
       else
         return false;
     },
+    'if true': function (iii) {
+      var left = iii.pop('boolean');
+      if (!left)
+        return false;
+      var vals = iii.shift('all');
+      if (_.isEmpty(vals))
+        return true;
+      else
+        return _.last(vals);
+    },
+    'if false': function (iii) {
+      var left = iii.pop('boolean');
+      if (left)
+        return false;
+      var vals = iii.shift('all');
+      if (_.isEmpty(vals))
+        return true;
+      else
+        return _.last(vals);
+    },
     'less or equal': function (iii) {
       var left = iii.pop('number');
       var right = iii.shift('number');
