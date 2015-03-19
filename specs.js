@@ -344,7 +344,22 @@ describe('if false', function () {
 });
 // === describe if false ============================================
 
+describe('$', function () {
 
+  it('turns a String selector into a JQuery object', function () {
+    $('#the_stage').html('<span class="logo"></span>');
+    var result = iii.run(['#the_stage span.logo', '$', [], 'size', []]).stack;
+    expect(result).toEqual(result);
+  }); // === it
+
+}); // === describe $
+
+describe("delegating to JQuery", function () {
+  it('passes function to JQuery if function not found', function () {
+    $('#the_stage').html('<span></span><span></span>');
+    expect(iii.run(['#the_stage span', 'size', []]).stack).toEqual([2]);
+  }); // === it
+}); // === describe delegating to JQuery
 
 
  

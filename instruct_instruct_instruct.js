@@ -13,6 +13,7 @@ var instruct_instruct_instruct = function (funcs) {
 // === Scope
 (function () {
   var I = instruct_instruct_instruct;
+  var jquery_proxy = $('body');
 
   function log() {
     if (window.console)
@@ -42,6 +43,9 @@ var instruct_instruct_instruct = function (funcs) {
   instruct_instruct_instruct.base = {
     'add to stack': function (iii) {
       concat(iii.stack, iii.shift('all'));
+    },
+    '$': function (iii) {
+      return $(iii.pop('string'));
     },
     'array': function (iii) {
       return iii.shift('all');
@@ -114,6 +118,7 @@ var instruct_instruct_instruct = function (funcs) {
     var last_o    = null;
     var func_name = null;
     var result    = null;
+    var jquery    = null;
 
     var env = {
       stack: left,
@@ -164,6 +169,12 @@ var instruct_instruct_instruct = function (funcs) {
 
       shift: function (type) {
         this.run_args();
+        if (type == 'all') {
+          var vals = this.args;
+          this.args = [];
+          return vals;
+        }
+
         if (_.isEmpty(this.args)) {
           if (type)
             throw new Error("Argument Stack underflow while shifting for " + type + ".");
@@ -186,10 +197,6 @@ var instruct_instruct_instruct = function (funcs) {
             if (!_.isBoolean(val))
               throw new Error("Argument Stack shifted value is not a boolean: " + inspect(val));
             break;
-          case 'all':
-            val = concat([val], this.args);
-            this.args = [];
-            break;
 
           default:
             if (type !== undefined)
@@ -210,9 +217,14 @@ var instruct_instruct_instruct = function (funcs) {
         }
         env.raw_args = o;
         func_name    = left.pop();
-        if (!this.funcs[func_name])
-          throw new Error("Func not found: " + func_name);
-        result = this.funcs[func_name](env);
+        if (!this.funcs[func_name]) {
+          if (!jquery_proxy[func_name])
+            throw new Error("Func not found: " + func_name);
+          jquery = _.last(left)[func_name] ? left.pop() : $(env.pop('string'));
+          result = jquery[func_name].apply(jquery, env.shift('all'));
+        } else {
+          result = this.funcs[func_name](env);
+        }
         if (result !== undefined)
           left.unshift( result );
       } else {
